@@ -20,7 +20,7 @@ class ReorgLayer(nn.Module):
 
 class YOLOV2(nn.Module):
 
-    def __init__(self, num_classes=20, darknet = None,
+    def __init__(self, num_classes=80, darknet = None,
                  anchors=[(1.3221, 1.73145), (3.19275, 4.00944), (5.05587, 8.09892), (9.47112, 4.84053),
                           (11.2364, 10.0071)], ):
         super(YOLOV2, self).__init__()
@@ -89,54 +89,6 @@ class YOLOV2(nn.Module):
             elif isinstance(m, nn.Linear):
                 nn.init.normal_(m.weight, 0, 0.01)
                 nn.init.constant_(m.bias, 0)
-
-    def load_conv_bn(self, conv_model, bn_model):
-        num_w = conv_model.weight.numel()
-        num_b = bn_model.bias.numel()
-        bn_model.bias.data.copy_(
-            torch.reshape(torch.from_numpy(self.buf[self.start:self.start + num_b]), bn_model.bias.size()))
-        self.start = self.start + num_b
-        bn_model.weight.data.copy_(
-            torch.reshape(torch.from_numpy(self.buf[self.start:self.start + num_b]), bn_model.bias.size()))
-        self.start = self.start + num_b
-        bn_model.running_mean.copy_(
-            torch.reshape(torch.from_numpy(self.buf[self.start:self.start + num_b]), bn_model.bias.size()))
-        self.start = self.start + num_b
-        bn_model.running_var.copy_(
-            torch.reshape(torch.from_numpy(self.buf[self.start:self.start + num_b]), bn_model.bias.size()))
-        self.start = self.start + num_b
-        conv_model.weight.data.copy_(
-            torch.reshape(torch.from_numpy(self.buf[self.start:self.start + num_w]), conv_model.weight.size()))
-        self.start = self.start + num_w
-
-    def load_conv(self, conv_model):
-        num_w = conv_model.weight.numel()
-        num_b = conv_model.bias.numel()
-        conv_model.bias.data.copy_(
-            torch.reshape(torch.from_numpy(self.buf[self.start:self.start + num_b]), conv_model.bias.size()))
-        self.start = self.start + num_b
-        conv_model.weight.data.copy_(
-            torch.reshape(torch.from_numpy(self.buf[self.start:self.start + num_w]), conv_model.weight.size()))
-        self.start = self.start + num_w
-
-    def dfs(self, m):
-        children = list(m.children())
-        for i, c in enumerate(children):
-            if isinstance(c, torch.nn.Sequential):
-                self.dfs(c)
-            elif isinstance(c, torch.nn.Conv2d):
-                if c.bias is not None:
-                    self.load_conv(c)
-                else:
-                    self.load_conv_bn(c, children[i + 1])
-
-    def load_weight(self, model, weights_file):
-        # ref : https://github.com/tztztztztz/yolov2.pytorch
-        self.start = 0
-        fp = open(weights_file, 'rb')
-        self.buf = np.fromfile(fp, dtype=np.float32)
-        fp.close()
-        self.dfs(model)
 
 if __name__ == '__main__':
     darknet = darknet19.DarkNet19(num_classes=20)

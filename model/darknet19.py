@@ -4,7 +4,7 @@ import numpy as np
 
 
 class DarkNet19(nn.Module):
-    def __init__(self, num_classes=20, num_bboxes=2):
+    def __init__(self, num_classes=80, num_bboxes=2):
         super(DarkNet19, self).__init__()
 
         self.num_bboxes = num_bboxes
