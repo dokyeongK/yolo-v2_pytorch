@@ -13,6 +13,9 @@ This repository is about pytorch implementation of [YOLO9000](https://arxiv.org/
 - visdom
 - pillow
 
+### Training
+- Developing..
+
 ### Datasets
 
 - [VOC2007](http://host.robots.ox.ac.uk/pascal/VOC/voc2007/)
